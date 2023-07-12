@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <Windows.h>
+#include <atlstr.h>
 
 #define MAX_LENGTH 32
 
@@ -115,22 +116,16 @@ unsigned long long ConvertEndian8(char* input_str)
     return Ret;
 }
 
-unsigned long long CopyClipBoard(unsigned long long Number)
+unsigned long long CopyClipBoard(char* szBuff, int str_lenth)
 {
-    int Ret = 0;
-    unsigned char dest_str[MAX_LENGTH] = "";
-    char dest_str1[MAX_LENGTH] = "";
-    //_itoa_s(Number, dest_str, 16);
-
-    convertUnsignedLongLongToHexString(Number, dest_str1);
-
+    int Ret = 0;    
     ::OpenClipboard(NULL);
     EmptyClipboard();
 
     HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, 256);
     char* mem = (char*)GlobalLock(hglbCopy);
 
-    strcpy_s(mem, MAX_LENGTH, dest_str1);
+    strcpy_s(mem, str_lenth, szBuff);
     GlobalUnlock(hglbCopy);
     ::SetClipboardData(CF_TEXT, mem);
     CloseClipboard();
@@ -139,7 +134,6 @@ unsigned long long CopyClipBoard(unsigned long long Number)
 
 int main()
 {
-
     char input_str[MAX_LENGTH];
 
 #ifdef __TEST
@@ -151,18 +145,23 @@ int main()
     //printf("%s\n", input_str);
 #endif
 
-    int input_str_lenth =  strlen(input_str);
-    //printf("\n%d", a);
-
+    int input_str_lenth = _tcslen(input_str); 
     unsigned long long Number;
+    char dest_str[MAX_LENGTH] = "";
 
     if (input_str_lenth <= 8)
+    {
         Number = ConvertEndian(input_str);
+        _itoa_s(Number, dest_str, 16);
+    }
 
     else
+    {
         Number = ConvertEndian8(input_str);
+        convertUnsignedLongLongToHexString(Number, dest_str);
+    }    
     
-    CopyClipBoard(Number);   
+    CopyClipBoard(dest_str, input_str_lenth + 1);
 
  	return 0;
 }
